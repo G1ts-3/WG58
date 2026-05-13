@@ -1,0 +1,349 @@
+@import "tailwindcss";
+
+/* ========================================
+   WG58 Design System — "Modern Sundanese Elegance"
+   ======================================== */
+
+@theme inline {
+  /* Color Palette */
+  --color-primary: #2C4C3B;
+  --color-primary-dark: #1E3529;
+  --color-primary-light: #3A6350;
+  --color-accent: #C05746;
+  --color-accent-light: #D4725F;
+  --color-accent-dark: #A04535;
+  --color-parchment: #F9F6F0;
+  --color-parchment-dark: #EDE8DD;
+  --color-charcoal: #1A1A1A;
+  --color-charcoal-light: #3D3D3D;
+  --color-warm-gray: #6B6560;
+  --color-warm-gray-light: #A09A94;
+
+  /* Font Families */
+  --font-heading: var(--font-cormorant);
+  --font-body: var(--font-jakarta);
+
+  /* New Tokens */
+  --mesh-gradient: radial-gradient(at 0% 0%, rgba(44, 76, 59, 0.05) 0px, transparent 50%),
+                   radial-gradient(at 100% 0%, rgba(192, 87, 70, 0.05) 0px, transparent 50%),
+                   radial-gradient(at 100% 100%, rgba(44, 76, 59, 0.05) 0px, transparent 50%),
+                   radial-gradient(at 0% 100%, rgba(192, 87, 70, 0.05) 0px, transparent 50%);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-parchment);
+  background-image: var(--mesh-gradient);
+  color: var(--color-charcoal);
+  font-family: var(--font-body), system-ui, sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* Subtle Sundanese Pattern Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("https://www.transparenttextures.com/patterns/batik-dots.png");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* GPU Optimization for Smooth Scroll Animations */
+.optimize-gpu {
+  will-change: transform, opacity;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide Scrollbar Globally */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+
+/* ========================================
+   Glassmorphism Navbar
+   ======================================== */
+.nav-glass {
+  background: #ffffff;
+  border-bottom: 1px solid var(--color-parchment-dark);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.nav-glass-hero {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+/* ========================================
+   Hero Parallax
+   ======================================== */
+.hero-parallax {
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+
+/* ========================================
+   Floating Button Animation
+   ======================================== */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.btn-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ========================================
+   Slow Zoom Animation (About Section)
+   ======================================== */
+@keyframes slowZoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
+}
+
+.slow-zoom {
+  animation: slowZoom 20s ease-in-out infinite alternate;
+}
+
+/* ========================================
+   Shine Button Effect
+   ======================================== */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: rotate(25deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.btn-shine:hover::after {
+  left: 120%;
+}
+
+/* ========================================
+   Custom Calendar Styles
+   ======================================== */
+.calendar-day {
+  transition: all 0.2s ease;
+}
+
+.calendar-day:hover:not(.calendar-day-disabled) {
+  background-color: var(--color-primary);
+  color: white;
+  transform: scale(1.1);
+}
+
+.calendar-day-selected {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(44, 76, 59, 0.3);
+}
+
+.calendar-day-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.calendar-day-today {
+  border: 2px solid var(--color-accent);
+}
+
+/* ========================================
+   Payment Modal
+   ======================================== */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.payment-modal-enter {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* ========================================
+   Success Checkmark Animation
+   ======================================== */
+@keyframes checkmark {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: checkmark 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: checkmark 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.4s forwards;
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-parchment);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ========================================
+   Selection Color
+   ======================================== */
+::selection {
+  background: var(--color-accent);
+  color: white;
+}
+
+/* ========================================
+   Info Card 3D Tilt Glow
+   ======================================== */
+.tilt-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.tilt-card-inner {
+  transform: translateZ(30px);
+}
+
+/* ========================================
+   Step Wizard Progress
+   ======================================== */
+.step-line {
+  transition: background-color 0.5s ease;
+}
+
+/* ========================================
+   Mobile Menu Overlay
+   ======================================== */
+.mobile-menu-open {
+  overflow: hidden;
+}
+
+/* ========================================
+   Hacks to hide Next.js Dev Tool overlays
+   ======================================== */
+#nextjs-portal, 
+[data-nextjs-toast-wrapper],
+nextjs-portal {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ========================================
+   Glassmorphism Utilities
+   ======================================== */
+/* ========================================
+   Card Styles
+   ======================================== */
+.premium-card {
+  background: #ffffff;
+  border: 1px solid var(--color-parchment-dark);
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.04),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.premium-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.08),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: var(--color-accent-light);
+}
+
+.dark-card {
+  background: var(--color-primary-dark);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.glass-card-dark {
+  background: rgba(26, 26, 26, 0.5);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   Enhanced Animations
+   ======================================== */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal-up {
+  animation: reveal-up 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.stagger-item {
+  opacity: 0;
+}
+
+[data-reveal="true"] .stagger-item {
+  animation: reveal-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
