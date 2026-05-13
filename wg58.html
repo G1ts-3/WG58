@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warung Gunung 58 | Kuliner Autentik Cisarua</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS (Animate On Scroll) -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#064e3b',   /* Deep Forest Green */
+                        'secondary': '#d97706', /* Golden Harvest */
+                        'accent': '#fefce8',    /* Ivory */
+                        'dark': '#1e293b',      /* Slate */
+                    },
+                    fontFamily: {
+                        'serif': ['"Playfair Display"', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Initial Transparent Navbar */
+        .nav-transparent {
+            background: transparent;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Scrolled White Navbar */
+        .nav-white {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: #1e293b;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-white .logo-text { color: #064e3b; }
+        .nav-white .nav-link { color: #475569; }
+        .nav-white .nav-link:hover { color: #d97706; }
+        
+        .hero-zoom {
+            animation: zoom 20s infinite alternate;
+        }
+        
+        @keyframes zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .gradient-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7));
+        }
+
+        .card-hover:hover {
+            transform: translateY(-10px);
+        }
+
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-shine::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.2);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
+
+        .btn-shine:hover::after {
+            left: 120%;
+        }
+
+        .menu-item {
+            transition: all 0.5s ease-in-out;
+        }
+
+        .menu-item.hidden-item {
+            opacity: 0;
+            transform: scale(0.9);
+            display: none;
+        }
+
+        .filter-btn.active {
+            background-color: #d97706;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-accent text-dark font-sans overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 nav-transparent transition-all duration-500 py-6" id="mainNav">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="logo.jpg" alt="WG58 Logo" class="h-12 w-12 rounded-full object-cover border-2 border-secondary shadow-lg">
+                <span class="logo-text font-serif text-2xl font-bold tracking-tight transition-colors duration-500">WG58</span>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-10 font-medium">
+                <a href="#home" class="nav-link transition-colors duration-500 hover:text-secondary">Beranda</a>
+                <a href="#about" class="nav-link transition-colors duration-500 hover:text-secondary">Tentang</a>
+                <a href="#menu" class="nav-link transition-colors duration-500 hover:text-secondary">Menu</a>
+                <a href="#gallery" class="nav-link transition-colors duration-500 hover:text-secondary">Galeri</a>
+                <a href="#contact" class="bg-secondary px-7 py-2.5 rounded-full text-white btn-shine transition-all shadow-lg hover:shadow-secondary/20">Reservasi</a>
+            </div>
+
+            <button class="md:hidden text-2xl" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0">
+            <img src="assets/hero.png" alt="Hero Background" class="w-full h-full object-cover hero-zoom">
+            <div class="absolute inset-0 gradient-overlay"></div>
+        </div>
+        
+        <div class="relative z-10 text-center px-4" data-aos="fade-up" data-aos-duration="1500">
+            <h1 class="font-serif text-5xl md:text-8xl text-white font-black mb-6 leading-tight">
+                Cita Rasa <br> <span class="text-secondary italic">Gunung</span> Autentik
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto font-light tracking-wide">
+                Menyajikan kehangatan tradisi Sunda di sejuknya pegunungan Cisarua.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-5 justify-center">
+                <a href="#menu" class="bg-secondary text-white px-12 py-4 rounded-full text-lg font-bold btn-shine shadow-2xl transition-transform hover:scale-105">Eksplor Menu</a>
+                <a href="#contact" class="bg-white/10 backdrop-blur-md border border-white/30 text-white px-12 py-4 rounded-full text-lg font-bold hover:bg-white hover:text-primary transition-all">Pesan Meja</a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/50 animate-bounce cursor-pointer">
+            <a href="#about"><i class="fas fa-mouse text-3xl"></i></a>
+        </div>
+    </section>
+
+    <!-- Info Floating Cards -->
+    <section class="container mx-auto px-6 -mt-24 relative z-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-10 rounded-3xl shadow-2xl flex items-center gap-6 group hover:bg-primary transition-all duration-500" data-aos="fade-up" data-aos-delay="100">
+                <div class="bg-primary/10 p-5 rounded-2xl group-hover:bg-white/20 transition-colors">
+                    <i class="fas fa-map-marker-alt text-3xl text-primary group-hover:text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl mb-1 group-hover:text-white transition-colors">Lokasi Kami</h3>
+                    <p class="text-gray-500 text-sm group-hover:text-white/70 transition-colors leading-relaxed">Jl. Raya Tugu, Cisarua,<br>Kab. Bandung Barat</p>
+                </div>
+            </div>
+            <div class="bg-white p-10 rounded-3xl shadow-2xl flex items-center gap-6 group hover:bg-primary transition-all duration-500" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-primary/10 p-5 rounded-2xl group-hover:bg-white/20 transition-colors">
+                    <i class="fas fa-clock text-3xl text-primary group-hover:text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl mb-1 group-hover:text-white transition-colors">Jam Operasional</h3>
+                    <p class="text-gray-500 text-sm group-hover:text-white/70 transition-colors leading-relaxed">Buka Setiap Hari<br>09:00 - 21:00 WIB</p>
+                </div>
+            </div>
+            <div class="bg-white p-10 rounded-3xl shadow-2xl flex items-center gap-6 group hover:bg-primary transition-all duration-500" data-aos="fade-up" data-aos-delay="300">
+                <div class="bg-primary/10 p-5 rounded-2xl group-hover:bg-white/20 transition-colors">
+                    <i class="fas fa-phone-alt text-3xl text-primary group-hover:text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl mb-1 group-hover:text-white transition-colors">Layanan Reservasi</h3>
+                    <p class="text-gray-500 text-sm group-hover:text-white/70 transition-colors leading-relaxed">0821-1601-0376<br>Konsultasi Via WhatsApp</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-32 relative bg-accent">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-20">
+                <div class="lg:w-1/2 relative" data-aos="zoom-in">
+                    <div class="absolute -top-12 -left-12 w-80 h-80 bg-primary/5 rounded-full blur-[80px]"></div>
+                    <div class="relative overflow-hidden rounded-[2.5rem] shadow-2xl group">
+                        <img src="assets/atmosphere.png" alt="Atmosphere" class="w-full h-[600px] object-cover transition-transform duration-1000 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
+                    <div class="absolute -bottom-8 -right-8 bg-secondary p-10 rounded-3xl shadow-2xl z-20 hidden md:block" data-aos="fade-up" data-aos-delay="400">
+                        <p class="text-white text-5xl font-black font-serif mb-1 tracking-tighter">10+</p>
+                        <p class="text-white/90 text-sm font-bold uppercase tracking-widest">Tahun Pengalaman</p>
+                    </div>
+                </div>
+                <div class="lg:w-1/2" data-aos="fade-left">
+                    <span class="text-secondary font-bold tracking-[0.3em] uppercase text-sm mb-6 block">Kisah Kami</span>
+                    <h2 class="font-serif text-5xl md:text-6xl font-black mb-8 leading-[1.1] text-primary">Melestarikan Warisan Sunda</h2>
+                    <p class="text-gray-600 text-lg mb-8 leading-loose font-light">
+                        Berdiri di tengah asrinya Cisarua, **Warung Gunung 58 (WG58)** lahir dari kerinduan akan rasa masakan rumah yang autentik. Kami menggunakan bumbu tradisional yang diracik segar setiap pagi.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12 mb-12">
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary transition-colors">
+                                <i class="fas fa-leaf text-primary group-hover:text-white"></i>
+                            </div>
+                            <span class="font-bold text-lg">Bahan Organik</span>
+                        </div>
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary transition-colors">
+                                <i class="fas fa-utensils text-primary group-hover:text-white"></i>
+                            </div>
+                            <span class="font-bold text-lg">Resep Orisinil</span>
+                        </div>
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary transition-colors">
+                                <i class="fas fa-mountain text-primary group-hover:text-white"></i>
+                            </div>
+                            <span class="font-bold text-lg">Suasana Sejuk</span>
+                        </div>
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary transition-colors">
+                                <i class="fas fa-wifi text-primary group-hover:text-white"></i>
+                            </div>
+                            <span class="font-bold text-lg">Koneksi Cepat</span>
+                        </div>
+                    </div>
+                    <a href="#menu" class="inline-flex items-center gap-4 text-primary font-black text-xl hover:text-secondary transition-colors group">
+                        Jelajahi Menu Kami 
+                        <i class="fas fa-long-arrow-alt-right transition-transform group-hover:translate-x-3"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="py-32 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-20" data-aos="fade-up">
+                <span class="text-secondary font-bold tracking-[0.3em] uppercase text-sm mb-4 block">Eksplorasi Rasa</span>
+                <h2 class="font-serif text-5xl md:text-7xl font-black mb-8 text-primary">Sajian Istimewa</h2>
+                
+                <!-- Category Filter -->
+                <div class="flex flex-wrap justify-center gap-4 mt-12">
+                    <button class="filter-btn active px-8 py-3 rounded-full font-bold border-2 border-transparent transition-all" data-category="all">Semua</button>
+                    <button class="filter-btn px-8 py-3 rounded-full font-bold border-2 border-gray-100 hover:border-secondary transition-all" data-category="ayam">Ayam</button>
+                    <button class="filter-btn px-8 py-3 rounded-full font-bold border-2 border-gray-100 hover:border-secondary transition-all" data-category="ikan">Ikan</button>
+                    <button class="filter-btn px-8 py-3 rounded-full font-bold border-2 border-gray-100 hover:border-secondary transition-all" data-category="sayuran">Sayuran</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12" id="menuGrid">
+                <!-- Ayam Bakar Madu -->
+                <div class="menu-item group bg-accent rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" data-category="ayam">
+                    <div class="relative overflow-hidden h-72">
+                        <img src="assets/ayam_bakar.png" alt="Ayam Bakar Madu" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <button class="bg-white text-primary px-8 py-3 rounded-full font-bold transform translate-y-10 group-hover:translate-y-0 transition-transform">Detail Menu</button>
+                        </div>
+                    </div>
+                    <div class="p-10 text-center">
+                        <div class="flex justify-center gap-1 text-secondary mb-4">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="font-serif text-3xl font-bold mb-4 text-primary">Ayam Bakar Madu</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">Ayam bakar bumbu rempah pilihan dengan olesan madu hutan yang meresap sempurna.</p>
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <span class="text-primary font-black text-2xl font-serif">Rp 35k</span>
+                            <button class="bg-primary text-white p-4 rounded-2xl hover:bg-secondary transition-colors shadow-lg">
+                                <i class="fas fa-shopping-basket"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gurame Cobek -->
+                <div class="menu-item group bg-accent rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" data-category="ikan">
+                    <div class="relative overflow-hidden h-72">
+                        <img src="assets/gurame.png" alt="Gurame Cobek" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <button class="bg-white text-primary px-8 py-3 rounded-full font-bold transform translate-y-10 group-hover:translate-y-0 transition-transform">Detail Menu</button>
+                        </div>
+                    </div>
+                    <div class="p-10 text-center">
+                         <div class="flex justify-center gap-1 text-secondary mb-4">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="font-serif text-3xl font-bold mb-4 text-primary">Gurame Cobek</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">Gurame goreng renyah disiram sambal cobek dadakan yang pedas dan segar.</p>
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <span class="text-primary font-black text-2xl font-serif">Rp 75k</span>
+                            <button class="bg-primary text-white p-4 rounded-2xl hover:bg-secondary transition-colors shadow-lg">
+                                <i class="fas fa-shopping-basket"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ikan Bakar -->
+                <div class="menu-item group bg-accent rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" data-category="ikan">
+                    <div class="relative overflow-hidden h-72">
+                        <img src="assets/ikan_bakar.png" alt="Ikan Bakar" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <button class="bg-white text-primary px-8 py-3 rounded-full font-bold transform translate-y-10 group-hover:translate-y-0 transition-transform">Detail Menu</button>
+                        </div>
+                    </div>
+                    <div class="p-10 text-center">
+                         <div class="flex justify-center gap-1 text-secondary mb-4">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <h3 class="font-serif text-3xl font-bold mb-4 text-primary">Ikan Bakar Cianjur</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">Ikan mas/nila bakar bumbu kecap pedas manis dengan aroma smookey.</p>
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <span class="text-primary font-black text-2xl font-serif">Rp 45k</span>
+                            <button class="bg-primary text-white p-4 rounded-2xl hover:bg-secondary transition-colors shadow-lg">
+                                <i class="fas fa-shopping-basket"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tumis Kangkung -->
+                <div class="menu-item group bg-accent rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" data-category="sayuran">
+                    <div class="relative overflow-hidden h-72">
+                        <img src="assets/kangkung.png" alt="Tumis Kangkung" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <div class="p-10 text-center">
+                         <div class="flex justify-center gap-1 text-secondary mb-4">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="font-serif text-3xl font-bold mb-4 text-primary">Tumis Kangkung</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">Kangkung segar pilihan ditumis dengan bawang putih dan terasi premium.</p>
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <span class="text-primary font-black text-2xl font-serif">Rp 15k</span>
+                            <button class="bg-primary text-white p-4 rounded-2xl hover:bg-secondary transition-colors shadow-lg">
+                                <i class="fas fa-shopping-basket"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sayur Lodeh -->
+                <div class="menu-item group bg-accent rounded-[2rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500" data-category="sayuran">
+                    <div class="relative overflow-hidden h-72">
+                        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Sayur Lodeh" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <div class="p-10 text-center">
+                        <h3 class="font-serif text-3xl font-bold mb-4 text-primary">Lodeh Gunung</h3>
+                        <p class="text-gray-500 text-sm mb-8 leading-relaxed">Perpaduan sayur mayur segar dengan kuah santan kental yang gurih.</p>
+                        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                            <span class="text-primary font-black text-2xl font-serif">Rp 18k</span>
+                            <button class="bg-primary text-white p-4 rounded-2xl hover:bg-secondary transition-colors shadow-lg">
+                                <i class="fas fa-shopping-basket"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-24 text-center">
+                <button class="bg-primary text-white px-16 py-5 rounded-full font-black text-lg btn-shine shadow-2xl transition-all hover:-translate-y-2">Unduh Menu Lengkap (PDF)</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reservation Section -->
+    <section id="contact" class="py-32 relative overflow-hidden">
+        <div class="absolute inset-0 bg-primary">
+             <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/batik-fractal.png')] bg-repeat"></div>
+             <div class="absolute -bottom-1/4 -right-1/4 w-[800px] h-[800px] bg-secondary/20 rounded-full blur-[150px]"></div>
+        </div>
+        
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="flex flex-col lg:flex-row gap-24">
+                <div class="lg:w-1/2 text-white" data-aos="fade-right">
+                    <span class="text-secondary font-bold tracking-[0.3em] uppercase text-sm mb-6 block">Kunjungi Kami</span>
+                    <h2 class="font-serif text-5xl md:text-7xl font-black mb-10 leading-[1.1]">Rencanakan Momen Berharga</h2>
+                    <p class="text-primary-100 text-xl mb-16 opacity-70 leading-loose">
+                        Kami siap melayani acara keluarga, gathering kantor, hingga reuni santai. Pastikan ketersediaan meja Anda sekarang.
+                    </p>
+                    
+                    <div class="space-y-12">
+                        <div class="flex items-start gap-8">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center text-3xl">
+                                <i class="fas fa-map-marked-alt"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-2xl mb-2">Lokasi</h4>
+                                <p class="opacity-60 text-lg">Jl. Raya Tugu, Kp Tugu 1 No.58, Cisarua, Bandung Barat.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-8">
+                            <div class="w-16 h-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center text-3xl text-secondary">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-2xl mb-2">Chat Kami</h4>
+                                <p class="opacity-60 text-lg">0821-1601-0376 (Fast Response)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:w-1/2" data-aos="fade-left">
+                    <div class="bg-white p-12 md:p-16 rounded-[3rem] shadow-2xl relative">
+                        <div class="absolute -top-8 -right-8 bg-secondary w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl shadow-xl">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <form id="reservationForm" class="space-y-8">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-black uppercase tracking-wider text-gray-400">Nama Anda</label>
+                                    <input type="text" class="w-full bg-accent border-none p-5 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="John Doe">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-black uppercase tracking-wider text-gray-400">No. WhatsApp</label>
+                                    <input type="tel" class="w-full bg-accent border-none p-5 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="0821...">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-black uppercase tracking-wider text-gray-400">Tanggal</label>
+                                    <input type="date" class="w-full bg-accent border-none p-5 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-black uppercase tracking-wider text-gray-400">Waktu</label>
+                                    <input type="time" class="w-full bg-accent border-none p-5 rounded-2xl focus:ring-2 focus:ring-primary outline-none transition-all">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-sm font-black uppercase tracking-wider text-gray-400">Jumlah Tamu</label>
+                                <select class="w-full bg-accent border-none p-5 rounded-2xl focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer">
+                                    <option>1-2 Orang</option>
+                                    <option>3-5 Orang</option>
+                                    <option>6-10 Orang</option>
+                                    <option>Grup Besar (>10)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-white py-6 rounded-2xl font-black text-xl btn-shine shadow-2xl transition-all active:scale-95">Kirim Reservasi Sekarang</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark pt-32 pb-16">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24 border-b border-white/5 pb-24 text-white/60">
+                <div class="lg:col-span-1">
+                    <div class="flex items-center gap-4 mb-10">
+                        <img src="logo.jpg" alt="Logo" class="h-14 w-14 rounded-full border-2 border-secondary p-1">
+                        <span class="font-serif text-3xl font-black text-white tracking-tighter">WG58</span>
+                    </div>
+                    <p class="leading-loose mb-10 italic">
+                        "Tradisi yang Tak Pernah Pudar, Rasa yang Selalu Pulang."
+                    </p>
+                    <div class="flex gap-5">
+                        <a href="#" class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-secondary hover:text-white transition-all text-xl"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-secondary hover:text-white transition-all text-xl"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" class="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-secondary hover:text-white transition-all text-xl"><i class="fab fa-facebook"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-white font-black text-xl mb-10 uppercase tracking-widest">Tautan</h4>
+                    <ul class="space-y-5">
+                        <li><a href="#home" class="hover:text-secondary transition-colors flex items-center gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full"></span> Beranda</a></li>
+                        <li><a href="#about" class="hover:text-secondary transition-colors flex items-center gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full"></span> Tentang Kami</a></li>
+                        <li><a href="#menu" class="hover:text-secondary transition-colors flex items-center gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full"></span> Menu Andalan</a></li>
+                        <li><a href="#contact" class="hover:text-secondary transition-colors flex items-center gap-3"><span class="w-1.5 h-1.5 bg-secondary rounded-full"></span> Kontak</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-black text-xl mb-10 uppercase tracking-widest">Fasilitas</h4>
+                    <ul class="space-y-5">
+                        <li class="flex items-center gap-4"><i class="fas fa-parking text-secondary"></i> Area Parkir Luas</li>
+                        <li class="flex items-center gap-4"><i class="fas fa-mosque text-secondary"></i> Mushola Ber-AC</li>
+                        <li class="flex items-center gap-4"><i class="fas fa-wifi text-secondary"></i> WiFi Gratis 100Mbps</li>
+                        <li class="flex items-center gap-4"><i class="fas fa-toilet text-secondary"></i> Toilet Eksklusif</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-black text-xl mb-10 uppercase tracking-widest">Kontak Kami</h4>
+                    <p class="leading-loose mb-6">
+                        Jl. Raya Tugu, Cisarua, Bandung Barat, Jawa Barat 40551
+                    </p>
+                    <p class="text-2xl font-bold text-white mb-2">0821-1601-0376</p>
+                    <p class="text-secondary font-bold">warunggunung58@gmail.com</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8 text-white/30 text-sm">
+                <p>&copy; 2026 Warung Gunung 58. All Rights Reserved. Crafted by Antigravity Designer.</p>
+                <div class="flex gap-8">
+                    <a href="#" class="hover:text-white transition-colors">Syarat & Ketentuan</a>
+                    <a href="#" class="hover:text-white transition-colors">Kebijakan Privasi</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp -->
+    <a href="https://wa.me/6282116010376" target="_blank" class="fixed bottom-10 right-10 bg-[#25d366] text-white w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-2xl z-50 hover:scale-110 transition-all active:scale-95 group">
+        <i class="fab fa-whatsapp"></i>
+        <span class="absolute right-full mr-4 bg-white text-dark px-4 py-2 rounded-xl text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl border border-gray-100 whitespace-nowrap">
+            Butuh Bantuan? Chat Kami!
+        </span>
+    </a>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true,
+            easing: 'ease-out-quad'
+        });
+
+        // Navbar Scroll Effect: Transparent to White
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 100) {
+                nav.classList.remove('nav-transparent', 'py-6');
+                nav.classList.add('nav-white', 'py-4');
+            } else {
+                nav.classList.remove('nav-white', 'py-4');
+                nav.classList.add('nav-transparent', 'py-6');
+            }
+        });
+
+        // Menu Filtering Logic
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const menuItems = document.querySelectorAll('.menu-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filterValue = btn.getAttribute('data-category');
+
+                menuItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+                    
+                    if (filterValue === 'all' || filterValue === category) {
+                        item.classList.remove('hidden-item');
+                        setTimeout(() => {
+                            item.style.display = 'block';
+                            item.style.opacity = '1';
+                            item.style.transform = 'scale(1)';
+                        }, 50);
+                    } else {
+                        item.style.opacity = '0';
+                        item.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            item.style.display = 'none';
+                            item.classList.add('hidden-item');
+                        }, 500);
+                    }
+                });
+            });
+        });
+
+        // Form Submission Logic
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Pesanan meja Anda sedang diproses! Tim kami akan segera mengirimkan konfirmasi melalui WhatsApp.');
+        });
+    </script>
+</body>
+</html>
