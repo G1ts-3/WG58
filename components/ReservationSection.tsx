@@ -126,23 +126,16 @@ export default function ReservationSection() {
     setSubmitStatus("idle");
 
     try {
-      const response = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("/api/send-wa", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_KEY,
-          subject: `Reservasi Baru WG58 - ${name}`,
-          from_name: "Sistem WG58",
-          Nama: name,
-          WhatsApp: whatsapp,
-          Email: email || "-",
-          Tanggal: formatDate(date),
-          Waktu: `${time} WIB`,
-          "Jumlah Tamu": `${pax} Orang`,
-          Pesan: "Tolong segera hubungi nomor WhatsApp di atas untuk instruksi pembayaran DP."
+          nama: name,
+          whatsapp,
+          email: email || "-",
+          tanggal: formatDate(date),
+          waktu: `${time} WIB`,
+          jumlahTamu: `${pax} Orang`,
         }),
       });
 
@@ -152,7 +145,7 @@ export default function ReservationSection() {
       } else {
         setSubmitStatus("error");
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
