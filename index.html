@@ -138,6 +138,18 @@
                 <i class="fas fa-bars"></i>
             </button>
         </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="md:hidden fixed inset-0 bg-primary/95 backdrop-blur-lg z-40 transform translate-x-full transition-transform duration-300 flex flex-col justify-center items-center gap-8 opacity-0 pointer-events-none">
+            <button id="closeMenu" class="absolute top-8 right-8 text-white text-3xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <a href="#home" class="mobile-link text-white text-2xl font-bold hover:text-secondary transition-colors">Beranda</a>
+            <a href="#about" class="mobile-link text-white text-2xl font-bold hover:text-secondary transition-colors">Tentang</a>
+            <a href="#menu" class="mobile-link text-white text-2xl font-bold hover:text-secondary transition-colors">Menu</a>
+            <a href="#gallery" class="mobile-link text-white text-2xl font-bold hover:text-secondary transition-colors">Galeri</a>
+            <a href="#contact" class="mobile-link bg-secondary px-8 py-3 rounded-full text-white text-xl font-bold mt-4 shadow-lg">Reservasi</a>
+        </div>
     </nav>
 
     <!-- Hero Section -->
@@ -524,10 +536,15 @@
         </div>
     </footer>
 
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" class="fixed bottom-[110px] right-6 md:bottom-36 md:right-10 bg-primary text-white w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl md:text-2xl shadow-xl z-40 opacity-0 translate-y-10 transition-all duration-300 pointer-events-none hover:bg-secondary hover:-translate-y-1">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <!-- Floating WhatsApp -->
-    <a href="https://wa.me/6282116010376" target="_blank" class="fixed bottom-10 right-10 bg-[#25d366] text-white w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-2xl z-50 hover:scale-110 transition-all active:scale-95 group">
+    <a href="https://wa.me/6282116010376" target="_blank" class="fixed bottom-8 right-6 md:bottom-10 md:right-10 bg-[#25d366] text-white w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl shadow-2xl z-50 hover:scale-110 transition-all active:scale-95 group">
         <i class="fab fa-whatsapp"></i>
-        <span class="absolute right-full mr-4 bg-white text-dark px-4 py-2 rounded-xl text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl border border-gray-100 whitespace-nowrap">
+        <span class="hidden md:block absolute right-full mr-4 bg-white text-dark px-4 py-2 rounded-xl text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl border border-gray-100 whitespace-nowrap">
             Butuh Bantuan? Chat Kami!
         </span>
     </a>
@@ -542,7 +559,10 @@
 
         // Navbar Scroll Effect: Transparent to White
         const nav = document.getElementById('mainNav');
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+        
         window.addEventListener('scroll', function() {
+            // Navbar logic
             if (window.scrollY > 100) {
                 nav.classList.remove('nav-transparent', 'py-6');
                 nav.classList.add('nav-white', 'py-4');
@@ -550,6 +570,23 @@
                 nav.classList.remove('nav-white', 'py-4');
                 nav.classList.add('nav-transparent', 'py-6');
             }
+            
+            // Scroll to Top button logic
+            if (window.scrollY > 400) {
+                scrollToTopBtn.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+                scrollToTopBtn.classList.add('opacity-100', 'translate-y-0');
+            } else {
+                scrollToTopBtn.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+                scrollToTopBtn.classList.remove('opacity-100', 'translate-y-0');
+            }
+        });
+
+        // Scroll to top click action
+        scrollToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
 
         // Menu Filtering Logic
@@ -584,6 +621,31 @@
                     }
                 });
             });
+        });
+
+        // Mobile Menu Logic
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const closeMenu = document.getElementById('closeMenu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        function toggleMenu() {
+            if (mobileMenu.classList.contains('translate-x-full')) {
+                mobileMenu.classList.remove('translate-x-full', 'opacity-0', 'pointer-events-none');
+                mobileMenu.classList.add('translate-x-0', 'opacity-100', 'pointer-events-auto');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            } else {
+                mobileMenu.classList.add('translate-x-full', 'opacity-0', 'pointer-events-none');
+                mobileMenu.classList.remove('translate-x-0', 'opacity-100', 'pointer-events-auto');
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+        }
+
+        menuToggle.addEventListener('click', toggleMenu);
+        closeMenu.addEventListener('click', toggleMenu);
+        
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
         });
 
         // Form Submission Logic
