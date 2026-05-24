@@ -1,298 +1,422 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 
-/* ========================================
-   Multi-Step Reservation Wizard (Simplified)
-   Step 0: Date, Time, Pax
-   Step 1: Customer Details
-   Step 2: Payment
-   ======================================== */
+type TableStatus = "tersedia" | "tidak tersedia";
+type PaymentStatus = "pending" | "paid" | "failed" | "expired";
 
-function formatRupiah(n: number) { return `Rp ${n.toLocaleString("id-ID")}`; }
+type TableItem = {
+  table_id: string;
+  table_number: number;
+  capacity: number;
+  booking_price: number;
+  status: TableStatus;
+};
 
-/* ---- Custom Calendar Component ---- */
-function Calendar({ selected, onSelect }: { selected: string; onSelect: (d: string) => void }) {
-  const [viewDate, setViewDate] = useState(new Date());
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+type FormState = {
+  customer_name: string;
+  customer_phone: string;
+  reservation_date: string;
+  reservation_time: string;
+  guest_count: string;
+};
 
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDay = new Date(year, month, 1).getDay();
-  const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+type Order = {
+  order_id: string;
+  table_id: string;
+  table_number: number;
+  customer_name: string;
+  customer_phone: string;
+  reservation_date: string;
+  reservation_time: string;
+  guest_count: number;
+  total_price: number;
+  payment_status: PaymentStatus;
+};
 
-  const days = [];
-  for (let i = 0; i < firstDay; i++) days.push(null);
-  for (let d = 1; d <= daysInMonth; d++) days.push(d);
+const initialForm: FormState = {
+  customer_name: "",
+  customer_phone: "",
+  reservation_date: "",
+  reservation_time: "",
+  guest_count: "",
+};
 
-  const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
-  const nextMonth = () => setViewDate(new Date(year, month + 1, 1));
+const paymentLabels: Record<PaymentStatus, string> = {
+  pending: "Pembayaran masih pending.",
+  paid: "Pembayaran berhasil. Meja sudah ditandai tidak tersedia.",
+  failed: "Pembayaran gagal. Meja tetap tersedia bila belum dibayar order lain.",
+  expired: "Pembayaran expired. Meja tetap tersedia bila belum dibayar order lain.",
+};
 
-  return (
-    <div className="bg-white rounded-2xl p-3 shadow-sm border border-parchment-dark">
-      <div className="flex items-center justify-between mb-3">
-        <button onClick={prevMonth} className="w-8 h-8 rounded-full hover:bg-parchment flex items-center justify-center transition-colors"><i className="fas fa-chevron-left text-[10px] text-charcoal"></i></button>
-        <span className="text-xs font-bold text-charcoal tracking-wide uppercase">{monthNames[month]} {year}</span>
-        <button onClick={nextMonth} className="w-8 h-8 rounded-full hover:bg-parchment flex items-center justify-center transition-colors"><i className="fas fa-chevron-right text-[10px] text-charcoal"></i></button>
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-center mb-1">
-        {["M", "S", "S", "R", "K", "J", "S"].map(d => (
-          <div key={d} className="text-[10px] font-bold text-accent py-1">{d}</div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1">
-        {days.map((day, i) => {
-          if (!day) return <div key={`e-${i}`} />;
-          const date = new Date(year, month, day);
-          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-          const isPast = date < today;
-          const isSelected = selected === dateStr;
-          const isToday = date.getTime() === today.getTime();
-          return (
-            <button
-              key={dateStr}
-              disabled={isPast}
-              onClick={() => onSelect(dateStr)}
-              className={`w-full aspect-square rounded-lg text-[11px] font-bold transition-all
-                ${isPast ? "text-warm-gray-light opacity-30 cursor-not-allowed" : "hover:bg-primary hover:text-white text-charcoal"}
-                ${isSelected ? "bg-primary text-white shadow-lg" : ""}
-                ${isToday && !isSelected ? "text-accent border border-accent/30" : ""}
-              `}
-            >{day}</button>
-          );
-        })}
-      </div>
-    </div>
-  );
+function formatRupiah(value: number) {
+  return `Rp ${value.toLocaleString("id-ID")}`;
 }
 
-/* ---- Time Slots ---- */
-const timeSlots = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
+async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options?.headers || {}),
+    },
+  });
+  const data = await response.json().catch(() => ({}));
 
-/* ---- Step Indicator ---- */
-function StepIndicator({ current }: { current: number }) {
-  const steps = ["Booking", "Kontak", "Bayar"];
-  return (
-    <div className="flex items-center justify-between mb-8 max-w-xs mx-auto">
-      {steps.map((s, i) => (
-        <div key={s} className="flex items-center flex-1 last:flex-none">
-          <div className="flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${i < current ? "bg-primary text-white" : i === current ? "bg-accent text-white" : "bg-parchment-dark text-warm-gray"
-              }`}>{i < current ? <i className="fas fa-check text-[10px]" /> : i + 1}</div>
-            <span className="text-[9px] mt-1 font-bold text-warm-gray uppercase tracking-widest">{s}</span>
-          </div>
-          {i < steps.length - 1 && (
-            <div className={`flex-1 h-[2px] mx-2 rounded-full ${i < current ? "bg-primary" : "bg-parchment-dark"}`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
+  if (!response.ok) {
+    throw new Error(data.message || "Terjadi kesalahan. Silakan coba lagi.");
+  }
+
+  return data as T;
 }
 
 export default function ReservationSection() {
-  const [step, setStep] = useState(0);
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [pax, setPax] = useState(2);
-  const [name, setName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-  const [direction, setDirection] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [tables, setTables] = useState<TableItem[]>([]);
+  const [selectedTable, setSelectedTable] = useState<TableItem | null>(null);
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [summary, setSummary] = useState<FormState | null>(null);
+  const [formError, setFormError] = useState("");
+  const [tableMessage, setTableMessage] = useState("Memuat daftar meja...");
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const [statusOrder, setStatusOrder] = useState<Order | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
 
-  const bookingFee = 50000;
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
-  const canNext = () => {
-    if (step === 0) return date && time && pax > 0;
-    if (step === 1) return name.trim() && whatsapp.trim();
-    return true;
+  const loadTables = useCallback(async () => {
+    setTableMessage("Memuat daftar meja...");
+    try {
+      const data = await apiFetch<{ tables: TableItem[] }>("/api/tables", { cache: "no-store" });
+      setTables(data.tables);
+      setSelectedTable((current) => data.tables.find((table) => table.table_id === current?.table_id) || null);
+      setTableMessage("");
+    } catch (error) {
+      setTableMessage(error instanceof Error ? error.message : "Gagal memuat meja.");
+    }
+  }, []);
+
+  const loadOrderStatus = useCallback(async (orderId: string) => {
+    try {
+      const data = await apiFetch<{ order: Order }>(`/api/orders/${encodeURIComponent(orderId)}`, {
+        cache: "no-store",
+      });
+      setStatusOrder(data.order);
+      await loadTables();
+    } catch (error) {
+      setPaymentMessage(error instanceof Error ? error.message : "Gagal memuat status pembayaran.");
+    }
+  }, [loadTables]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      loadTables();
+
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("order_id");
+      if (orderId) loadOrderStatus(orderId);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadOrderStatus, loadTables]);
+
+  const validateForm = () => {
+    if (!selectedTable) return "Meja wajib dipilih.";
+    if (!form.customer_name.trim()) return "Nama pemesan wajib diisi.";
+    if (!form.customer_phone.trim()) return "Nomor WhatsApp wajib diisi.";
+    if (!form.reservation_date) return "Tanggal reservasi wajib diisi.";
+    if (!form.reservation_time) return "Jam reservasi wajib diisi.";
+
+    const guestCount = Number(form.guest_count);
+    if (!Number.isInteger(guestCount) || guestCount < 1) return "Jumlah orang wajib diisi.";
+    if (guestCount > selectedTable.capacity) return "Jumlah orang tidak boleh lebih dari kapasitas meja.";
+    return "";
   };
 
-  const goNext = () => { setDirection(1); setStep(step + 1); };
-  const goPrev = () => { setDirection(-1); setStep(step - 1); };
+  const handleContinue = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const error = validateForm();
 
-  const formatDate = (d: string) => {
-    if (!d) return "";
-    const dt = new Date(d + "T00:00:00");
-    return dt.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    if (error) {
+      setFormError(error);
+      setSummary(null);
+      return;
+    }
+
+    setFormError("");
+    setPaymentMessage("");
+    setSummary(form);
   };
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    setSubmitStatus("idle");
+  const handlePay = async () => {
+    if (!selectedTable || !summary) return;
+
+    setIsPaying(true);
+    setPaymentMessage("Membuat order reservasi...");
 
     try {
-      const response = await fetch("/api/send-wa", {
+      const orderResponse = await apiFetch<{ order_id: string; order: Order }>("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nama: name,
-          whatsapp,
-          email: email || "-",
-          tanggal: formatDate(date),
-          waktu: `${time} WIB`,
-          jumlahTamu: `${pax} Orang`,
+          table_id: selectedTable.table_id,
+          customer_name: summary.customer_name,
+          customer_phone: summary.customer_phone,
+          reservation_date: summary.reservation_date,
+          reservation_time: summary.reservation_time,
+          guest_count: Number(summary.guest_count),
         }),
       });
 
-      const result = await response.json();
-      if (result.success) {
-        setSubmitStatus("success");
-      } else {
-        setSubmitStatus("error");
+      setPaymentMessage("Menghubungkan ke Midtrans Production...");
+
+      const paymentResponse = await apiFetch<{ redirect_url?: string; snap_token?: string }>(
+        "/api/payments/midtrans",
+        {
+          method: "POST",
+          body: JSON.stringify({ order_id: orderResponse.order_id }),
+        }
+      );
+
+      if (paymentResponse.redirect_url) {
+        window.location.href = paymentResponse.redirect_url;
+        return;
       }
-    } catch {
-      setSubmitStatus("error");
-    } finally {
-      setIsSubmitting(false);
+
+      throw new Error("Respons pembayaran tidak memiliki redirect_url.");
+    } catch (error) {
+      setPaymentMessage(error instanceof Error ? error.message : "Gagal membuat pembayaran.");
+      setIsPaying(false);
     }
   };
 
-  const slideVariants = {
-    enter: (d: number) => ({ x: d > 0 ? 50 : -50, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (d: number) => ({ x: d > 0 ? -50 : 50, opacity: 0 }),
+  const resetSelection = () => {
+    setSelectedTable(null);
+    setSummary(null);
+    setForm(initialForm);
+    setFormError("");
+    setPaymentMessage("");
   };
 
+  const summaryRows = [
+    ["Nomor Meja", selectedTable ? `Meja ${selectedTable.table_number}` : "-"],
+    ["Kapasitas Meja", selectedTable ? `${selectedTable.capacity} orang` : "-"],
+    ["Nama Pemesan", summary?.customer_name || "-"],
+    ["Nomor WhatsApp", summary?.customer_phone || "-"],
+    ["Tanggal Reservasi", summary?.reservation_date || "-"],
+    ["Jam Reservasi", summary?.reservation_time || "-"],
+    ["Jumlah Orang", summary?.guest_count ? `${summary.guest_count} orang` : "-"],
+    ["Total Bayar", selectedTable ? formatRupiah(selectedTable.booking_price) : "Rp 0"],
+  ];
+
   return (
-    <>
-      <section id="reservasi" className="py-24 lg:py-32 relative overflow-hidden bg-primary">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url('data:image/svg+xml,...')", backgroundSize: "60px" }} />
-        <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-accent/10 rounded-full blur-3xl" />
+    <section id="reservasi" className="py-24 lg:py-32 bg-primary relative overflow-hidden">
+      <div className="absolute inset-0 opacity-[0.04] bg-[url('/assets/atmosphere.png')] bg-cover bg-center" />
+      <div className="container mx-auto px-6 relative z-10">
+        <motion.div
+          className="max-w-3xl text-white mb-12"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.7 }}
+        >
+          <span className="text-accent font-bold tracking-[0.3em] uppercase text-[10px] mb-4 block">
+            Reservasi Online
+          </span>
+          <h2
+            className="text-4xl lg:text-6xl font-bold mb-5 leading-tight"
+            style={{ fontFamily: "var(--font-cormorant)" }}
+          >
+            Pesan Meja
+          </h2>
+          <p className="text-white/65 text-sm lg:text-base leading-relaxed">
+            Pilih satu meja yang tersedia, lengkapi data reservasi, cek ringkasan, lalu bayar
+            booking meja melalui Midtrans.
+          </p>
+        </motion.div>
 
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row gap-12 items-center">
-            {/* Left: Info */}
-            <motion.div className="lg:w-1/2 text-white text-center lg:text-left optimize-gpu" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.7 }}>
-              <span className="text-accent font-bold tracking-[0.3em] uppercase text-[10px] mb-4 block">Kunjungi Kami</span>
-              <h2 className="text-4xl lg:text-6xl font-bold mb-6 leading-tight" style={{ fontFamily: "var(--font-cormorant)" }}>Rencanakan Momen Berharga</h2>
-              <p className="text-white/60 text-sm lg:text-base mb-10 leading-relaxed max-w-md mx-auto lg:mx-0">Kami menyediakan area lesehan yang luas dan nyaman untuk momen spesial Anda bersama keluarga.</p>
-
-              <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
-                <a href="https://www.google.com/maps/search/Warung+Gunung+58+Jl.+Raya+Tugu,+Kp+Tugu+1+No.58,+Tugumukti,+Kec.+Cisarua" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group hover:opacity-80 transition-opacity">
-                  <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors"><i className="fas fa-map-marker-alt" /></div>
-                  <div className="text-left"><p className="text-[10px] font-bold text-accent uppercase tracking-widest">Lokasi</p><p className="text-xs opacity-70 group-hover:underline">Cisarua, Bandung Barat</p></div>
-                </a>
-                <a href="https://wa.me/6282116010376" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group hover:opacity-80 transition-opacity">
-                  <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-colors"><i className="fab fa-whatsapp" /></div>
-                  <div className="text-left"><p className="text-[10px] font-bold text-accent uppercase tracking-widest">WhatsApp</p><p className="text-xs opacity-70 group-hover:underline">0821-1601-0376</p></div>
-                </a>
+        {statusOrder && (
+          <div className="mb-8 bg-white border border-parchment-dark rounded-lg p-5 shadow-xl">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-warm-gray mb-1">
+                  Status Pembayaran
+                </p>
+                <h3 className="font-bold text-primary text-xl">Order {statusOrder.order_id}</h3>
+                <p className="text-sm text-warm-gray mt-1">{paymentLabels[statusOrder.payment_status]}</p>
               </div>
-            </motion.div>
+              <button
+                type="button"
+                onClick={() => loadOrderStatus(statusOrder.order_id)}
+                className="h-11 px-5 rounded-lg bg-parchment text-primary font-bold hover:bg-parchment-dark transition-colors"
+              >
+                Refresh Status
+              </button>
+            </div>
+          </div>
+        )}
 
-            {/* Right: Compact Wizard */}
-            <motion.div
-              className="lg:w-1/2 w-full max-w-xl optimize-gpu"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-            >
-              <div className="premium-card p-6 md:p-8 rounded-[2.5rem] relative">
-                {submitStatus === "success" ? (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-12 text-center">
-                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <i className="fas fa-check text-3xl text-primary" />
-                    </div>
-                    <h3 className="text-3xl font-bold text-primary mb-4" style={{ fontFamily: "var(--font-cormorant)" }}>Reservasi Terkirim!</h3>
-                    <p className="text-warm-gray text-sm mb-8">Tim kami akan segera menghubungi Anda via WhatsApp di nomor <strong className="text-charcoal">{whatsapp}</strong> untuk konfirmasi lebih lanjut.</p>
-                    <button onClick={() => { setStep(0); setSubmitStatus("idle"); setDate(""); setTime(""); setName(""); setWhatsapp(""); setEmail(""); }} className="px-8 py-3 bg-parchment text-charcoal font-bold rounded-xl hover:bg-primary/10 transition-colors">Buat Reservasi Baru</button>
-                  </motion.div>
-                ) : (
-                  <>
-                    <StepIndicator current={step} />
-
-                    <div className="min-h-[300px] flex flex-col">
-                      <AnimatePresence mode="wait" custom={direction}>
-                        {step === 0 && (
-                          <motion.div key="step0" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }}>
-                            <h3 className="text-xl font-bold text-charcoal mb-6 text-center" style={{ fontFamily: "var(--font-cormorant)" }}>Pilih Jadwal Kedatangan</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                              <Calendar selected={date} onSelect={setDate} />
-                              <div className="space-y-6">
-                                <div>
-                                  <label className="block text-[10px] font-bold uppercase tracking-widest text-warm-gray mb-3">Waktu Kedatangan</label>
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {timeSlots.map(t => (
-                                      <button key={t} onClick={() => setTime(t)} className={`py-2 rounded-xl text-xs font-bold transition-all ${time === t ? "bg-primary text-white shadow-lg" : "bg-parchment text-charcoal hover:bg-primary/10"}`}>{t}</button>
-                                    ))}
-                                  </div>
-                                </div>
-                                <div>
-                                  <label className="block text-[10px] font-bold uppercase tracking-widest text-warm-gray mb-3">Jumlah Tamu</label>
-                                  <div className="flex items-center gap-4 bg-parchment p-2 rounded-2xl w-fit">
-                                    <button onClick={() => setPax(Math.max(1, pax - 1))} className="w-8 h-8 rounded-xl bg-white flex items-center justify-center text-charcoal hover:bg-primary hover:text-white transition-all shadow-sm"><i className="fas fa-minus text-[10px]" /></button>
-                                    <span className="text-xl font-bold text-charcoal w-6 text-center">{pax}</span>
-                                    <button onClick={() => setPax(Math.min(50, pax + 1))} className="w-8 h-8 rounded-xl bg-white flex items-center justify-center text-charcoal hover:bg-primary hover:text-white transition-all shadow-sm"><i className="fas fa-plus text-[10px]" /></button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {step === 1 && (
-                          <motion.div key="step1" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="space-y-6">
-                            <h3 className="text-xl font-bold text-charcoal mb-2" style={{ fontFamily: "var(--font-cormorant)" }}>Informasi Kontak</h3>
-                            <p className="text-xs text-warm-gray mb-6">Pastikan nomor WhatsApp aktif untuk konfirmasi reservasi.</p>
-                            <div className="grid grid-cols-1 gap-5">
-                              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nama Lengkap" className="w-full bg-parchment p-4 rounded-2xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium" />
-                              <input type="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="Nomor WhatsApp" className="w-full bg-parchment p-4 rounded-2xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium" />
-                              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email (Opsional)" className="w-full bg-parchment p-4 rounded-2xl outline-none focus:ring-2 focus:ring-primary text-sm font-medium" />
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {step === 2 && (
-                          <motion.div key="step2" custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }}>
-                            <h3 className="text-xl font-bold text-charcoal mb-6" style={{ fontFamily: "var(--font-cormorant)" }}>Konfirmasi Akhir</h3>
-                            <div className="bg-parchment rounded-3xl p-6 space-y-4 mb-8">
-                              <div className="flex justify-between items-center"><span className="text-xs font-bold text-warm-gray uppercase">Jadwal</span><span className="text-sm font-bold text-charcoal">{formatDate(date)} | {time} WIB</span></div>
-                              <div className="flex justify-between items-center"><span className="text-xs font-bold text-warm-gray uppercase">Tamu</span><span className="text-sm font-bold text-charcoal">{pax} Orang</span></div>
-                              <div className="flex justify-between items-center"><span className="text-xs font-bold text-warm-gray uppercase">Nama</span><span className="text-sm font-bold text-charcoal">{name}</span></div>
-                              <div className="flex justify-between items-center"><span className="text-xs font-bold text-warm-gray uppercase">WhatsApp</span><span className="text-sm font-bold text-primary">{whatsapp}</span></div>
-                            </div>
-
-                            {submitStatus === "error" && (
-                              <div className="mb-6 p-4 bg-red-50 text-red-600 text-xs rounded-xl font-medium">
-                                <i className="fas fa-exclamation-circle mr-2" /> Gagal mengirim reservasi. Silakan coba lagi.
-                              </div>
-                            )}
-
-                            <p className="text-xs text-center text-warm-gray mb-6 leading-relaxed">
-                              Data reservasi akan dikirim secara otomatis. Tim kami akan menghubungi nomor WhatsApp Anda (<strong className="text-charcoal">{whatsapp}</strong>) untuk instruksi pembayaran lebih lanjut.
-                            </p>
-                            <button
-                              onClick={handleSubmit}
-                              disabled={isSubmitting}
-                              className="w-full bg-accent text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 disabled:cursor-wait"
-                            >
-                              {isSubmitting ? <><i className="fas fa-spinner fa-spin mr-2" /> Mengirim...</> : "Kirim Reservasi Sekarang"}
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <div className="mt-auto pt-8 flex items-center justify-between border-t border-parchment-dark">
-                        {step > 0 ? (
-                          <button onClick={goPrev} disabled={isSubmitting} className="text-xs font-bold text-warm-gray hover:text-charcoal uppercase tracking-widest flex items-center gap-2 transition-colors disabled:opacity-50"><i className="fas fa-arrow-left" /> Kembali</button>
-                        ) : <div />}
-                        {step < 2 && (
-                          <button onClick={goNext} disabled={!canNext()} className={`px-10 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${canNext() ? "bg-primary text-white hover:bg-accent shadow-lg" : "bg-parchment-dark text-warm-gray-light cursor-not-allowed"}`}>Lanjut <i className="fas fa-arrow-right ml-2" /></button>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
+        <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-6">
+          <div className="bg-white border border-parchment-dark rounded-lg p-5 md:p-7 shadow-xl">
+            <div className="flex items-end justify-between gap-4 mb-5">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1">Langkah 1</p>
+                <h3 className="text-2xl font-bold text-primary">Pilih Meja</h3>
               </div>
-            </motion.div>
+              <button
+                type="button"
+                onClick={loadTables}
+                className="w-11 h-11 rounded-lg bg-parchment text-primary hover:bg-parchment-dark transition-colors"
+                aria-label="Refresh daftar meja"
+                title="Refresh daftar meja"
+              >
+                <i className="fas fa-rotate-right" />
+              </button>
+            </div>
+
+            {tableMessage && <p className="mb-4 text-sm font-semibold text-warm-gray">{tableMessage}</p>}
+
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {tables.map((table) => {
+                const selected = selectedTable?.table_id === table.table_id;
+                const available = table.status === "tersedia";
+
+                return (
+                  <button
+                    key={table.table_id}
+                    type="button"
+                    disabled={!available}
+                    aria-pressed={selected}
+                    onClick={() => {
+                      setSelectedTable(table);
+                      setSummary(null);
+                      setTableMessage(`Meja ${table.table_number} dipilih.`);
+                    }}
+                    className={`min-h-[158px] rounded-lg border-2 p-4 text-left transition-all ${
+                      selected
+                        ? "bg-primary text-white border-accent shadow-lg"
+                        : available
+                          ? "bg-parchment border-transparent hover:border-accent hover:-translate-y-1"
+                          : "bg-parchment-dark border-transparent opacity-55 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-6">
+                      <span className="text-xl font-extrabold">Meja {table.table_number}</span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                          selected
+                            ? "bg-white/15 text-white"
+                            : available
+                              ? "bg-primary/10 text-primary"
+                              : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {selected ? "dipilih" : table.status}
+                      </span>
+                    </div>
+                    <div className={`grid gap-2 text-sm ${selected ? "text-white/75" : "text-warm-gray"}`}>
+                      <span>Kapasitas {table.capacity} orang</span>
+                      <span>Harga booking {formatRupiah(table.booking_price)}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid gap-6 content-start">
+            <div className="bg-white border border-parchment-dark rounded-lg p-5 md:p-7 shadow-xl">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1">Langkah 2</p>
+              <h3 className="text-2xl font-bold text-primary mb-5">Data Reservasi</h3>
+
+              <form onSubmit={handleContinue} className="grid gap-4">
+                <input
+                  className="w-full h-12 rounded-lg bg-parchment px-4 outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Nama pemesan"
+                  value={form.customer_name}
+                  onChange={(event) => setForm({ ...form, customer_name: event.target.value })}
+                />
+                <input
+                  className="w-full h-12 rounded-lg bg-parchment px-4 outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Nomor WhatsApp"
+                  value={form.customer_phone}
+                  onChange={(event) => setForm({ ...form, customer_phone: event.target.value })}
+                />
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input
+                    type="date"
+                    min={today}
+                    className="w-full h-12 rounded-lg bg-parchment px-4 outline-none focus:ring-2 focus:ring-primary"
+                    value={form.reservation_date}
+                    onChange={(event) => setForm({ ...form, reservation_date: event.target.value })}
+                  />
+                  <input
+                    type="time"
+                    className="w-full h-12 rounded-lg bg-parchment px-4 outline-none focus:ring-2 focus:ring-primary"
+                    value={form.reservation_time}
+                    onChange={(event) => setForm({ ...form, reservation_time: event.target.value })}
+                  />
+                </div>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  className="w-full h-12 rounded-lg bg-parchment px-4 outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Jumlah orang"
+                  value={form.guest_count}
+                  onChange={(event) => setForm({ ...form, guest_count: event.target.value })}
+                />
+
+                {formError && <p className="text-sm font-semibold text-red-600">{formError}</p>}
+
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={resetSelection}
+                    className="h-12 rounded-lg bg-parchment text-primary font-bold hover:bg-parchment-dark transition-colors"
+                  >
+                    Reset Pilihan
+                  </button>
+                  <button
+                    type="submit"
+                    className="h-12 rounded-lg bg-primary text-white font-bold hover:bg-accent transition-colors"
+                  >
+                    Lanjutkan
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="bg-white border border-parchment-dark rounded-lg p-5 md:p-7 shadow-xl">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-accent mb-1">Langkah 3</p>
+              <h3 className="text-2xl font-bold text-primary mb-5">Ringkasan Pesanan</h3>
+
+              <dl className="grid gap-3 mb-5">
+                {summaryRows.map(([label, value]) => (
+                  <div key={label} className="grid grid-cols-[0.9fr_1.1fr] gap-3 border-b border-parchment-dark pb-3">
+                    <dt className="text-xs font-bold uppercase text-warm-gray">{label}</dt>
+                    <dd className="m-0 text-sm font-bold text-charcoal break-words">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {paymentMessage && (
+                <p className={`mb-4 text-sm font-semibold ${paymentMessage.includes("berhasil") ? "text-primary" : "text-warm-gray"}`}>
+                  {paymentMessage}
+                </p>
+              )}
+
+              <button
+                type="button"
+                disabled={!selectedTable || !summary || isPaying}
+                onClick={handlePay}
+                className="w-full h-12 rounded-lg bg-accent text-white font-bold shadow-lg hover:bg-accent-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isPaying ? "Memproses..." : "Bayar Sekarang"}
+              </button>
+            </div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
